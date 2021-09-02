@@ -98,7 +98,7 @@ class TenantBase(TenantMixin):
             )
 
     @schema_required
-    def add_user(self, user_obj, is_superuser=False, is_staff=False):
+    def add_user(self, user_obj):
         """Add user to tenant."""
         # User already is linked here..
         if self.user_set.filter(id=user_obj.id).exists():
@@ -267,14 +267,6 @@ class UserProfileManager(BaseUserManager):
             schema_name=get_public_schema_name(),
         )
         public_tenant.add_user(profile)
-
-        # Public tenant permissions object was created when we assigned a
-        # role to the user above, if we are a staff/superuser we set it here
-        if is_staff or is_superuser:
-            user_tenant = profile.usertenantpermissions
-            user_tenant.is_staff = is_staff
-            user_tenant.is_superuser = is_superuser
-            user_tenant.save()
 
         tenant_user_created.send(sender=self.__class__, user=profile)
 
