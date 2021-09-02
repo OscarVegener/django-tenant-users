@@ -13,10 +13,6 @@ from tenant_users.compat import (
     get_public_schema_name,
     get_tenant_model,
 )
-from tenant_users.permissions.models import (
-    PermissionsMixinFacade,
-    UserTenantPermissions,
-)
 
 # An existing user removed from a tenant
 tenant_user_removed = Signal(providing_args=['user', 'tenant'])
@@ -112,13 +108,6 @@ class TenantBase(TenantMixin):
                 ),
             )
 
-        # User not linked to this tenant, so we need to create
-        # tenant permissions
-        UserTenantPermissions.objects.create(
-            profile=user_obj,
-            is_staff=is_staff,
-            is_superuser=is_superuser,
-        )
         # Link user to tenant
         user_obj.tenants.add(self)
 
@@ -143,14 +132,7 @@ class TenantBase(TenantMixin):
                 ),
             )
 
-        user_tenant_perms = user_obj.usertenantpermissions
-
-        # Remove all current groups from user..
-        groups = user_tenant_perms.groups
-        groups.clear()
-
         # Unlink from tenant
-        UserTenantPermissions.objects.filter(id=user_tenant_perms.id).delete()
         user_obj.tenants.remove(self)
 
         tenant_user_removed.send(
@@ -210,23 +192,13 @@ class TenantBase(TenantMixin):
     def transfer_ownership(self, new_owner):
         old_owner = self.owner
 
-        # Remove current owner superuser status but retain any assigned role(s)
-        old_owner_tenant = old_owner.usertenantpermissions
-        old_owner_tenant.is_superuser = False
-        old_owner_tenant.save()
-
         self.owner = new_owner
 
-        # If original has no permissions left, remove user from tenant
-        if not old_owner_tenant.groups.exists():
-            self.remove_user(old_owner)
+        self.remove_user(old_owner)
 
         try:
             # Set new user as superuser in this tenant if user already exists
             user = self.user_set.get(id=new_owner.id)
-            user_tenant = user.usertenantpermissions
-            user_tenant.is_superuser = True
-            user_tenant.save()
         except get_user_model().DoesNotExist:
             # New user is not a part of the system, add them as a user..
             self.add_user(new_owner, is_superuser=True)
@@ -366,7 +338,7 @@ class UserProfileManager(BaseUserManager):
 # This cant be located in the users app otherwise it would get loaded into
 # both the public schema and all tenant schemas. We want profiles only
 # in the public schema alongside the TenantBase model
-class UserProfile(AbstractBaseUser, PermissionsMixinFacade):
+class UserProfile(AbstractBaseUser):
     """
     An authentication-only model that is in the public tenant schema but
     linked from the authorization model (UserTenantPermissions)
