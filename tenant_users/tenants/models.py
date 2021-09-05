@@ -201,7 +201,7 @@ class TenantBase(TenantMixin):
             user = self.user_set.get(id=new_owner.id)
         except get_user_model().DoesNotExist:
             # New user is not a part of the system, add them as a user..
-            self.add_user(new_owner, is_superuser=True)
+            self.add_user(new_owner)
 
         self.save()
 
