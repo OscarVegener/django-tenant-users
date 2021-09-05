@@ -255,6 +255,8 @@ class UserProfileManager(BaseUserManager):
 
         profile.email = email
         profile.is_active = True
+        profile.is_staff = is_staff
+        profile.is_superuser = is_superuser
         profile.set_password(password)
         for attr, value in extra_fields.items():
             setattr(profile, attr, value)
@@ -355,6 +357,9 @@ class UserProfile(AbstractBaseUser):
     )
 
     is_active = models.BooleanField(_('active'), default=True)
+    
+    is_staff = models.BooleanField(default=False)
+    is_superuser = models.BooleanField(default=False)
 
     class Meta(object):
         abstract = True

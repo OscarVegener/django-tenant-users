@@ -13,7 +13,7 @@ from tenant_users.compat import (
 from tenant_users.tenants.models import ExistsError, InactiveError
 
 
-def provision_tenant(tenant_name, tenant_slug, user_email, is_staff=False):
+def provision_tenant(tenant_name, tenant_slug, user_email):
     """Create a tenant with default roles and permissions.
 
     Returns:
@@ -76,7 +76,7 @@ def provision_tenant(tenant_name, tenant_slug, user_email, is_staff=False):
                     is_primary=True,
                 )
             # Add user as a superuser inside the tenant
-            tenant.add_user(user, is_superuser=True, is_staff=is_staff)
+            tenant.add_user(user)
     except:
         if domain is not None:
             domain.delete()
