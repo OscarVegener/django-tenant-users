@@ -18,9 +18,6 @@ class TestUserProfile(django.TestCase):
         """Tests that instance can be saved and has correct representation."""
         instance.save()
 
-        # Test UserProfile.has_verified_email()
-        assert instance.has_verified_email() == instance.is_verified
-
         # Test UserProfile.get_full_name()
         assert instance.get_full_name() == str(instance)
 

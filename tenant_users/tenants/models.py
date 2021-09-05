@@ -216,7 +216,6 @@ class UserProfileManager(BaseUserManager):
         password,
         is_staff,
         is_superuser,
-        is_verified,
         **extra_fields,
     ):
         # Do some schema validation to protect against calling create user from
@@ -256,7 +255,6 @@ class UserProfileManager(BaseUserManager):
 
         profile.email = email
         profile.is_active = True
-        profile.is_verified = is_verified
         profile.set_password(password)
         for attr, value in extra_fields.items():
             setattr(profile, attr, value)
@@ -284,7 +282,6 @@ class UserProfileManager(BaseUserManager):
             password,
             is_staff,
             False,
-            False,
             **extra_fields,
         )
 
@@ -292,7 +289,6 @@ class UserProfileManager(BaseUserManager):
         return self._create_user(
             email,
             password,
-            True,
             True,
             True,
             **extra_fields,
@@ -360,14 +356,8 @@ class UserProfile(AbstractBaseUser):
 
     is_active = models.BooleanField(_('active'), default=True)
 
-    # Tracks whether the user's email has been verified
-    is_verified = models.BooleanField(_('verified'), default=False)
-
     class Meta(object):
         abstract = True
-
-    def has_verified_email(self):
-        return self.is_verified
 
     def delete(self, force_drop=False, *args, **kwargs):
         if force_drop:
