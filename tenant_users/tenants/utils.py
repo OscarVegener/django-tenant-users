@@ -30,6 +30,8 @@ def create_public_tenant(domain_url, owner_email, **owner_extra):
     profile = UserModel.objects.create(
         email=owner_email,
         is_active=True,
+        is_staff=True,
+        is_superuser=True,
         **owner_extra,
     )
     profile.set_unusable_password()
