@@ -164,23 +164,6 @@ The settings.py file entry would look like (see Django documentation for more de
 
 .. _authbackend:
 
-Setting up the Authentication Backend
-=====================================
-
-At this point we now have all of the user, permissions, and tenant models configured. Because Django does not completely isolate authorization (permissions) from authentication (user/pass) we have to use a minimally modified authentication backend. Switch the authentication backend as follows:
-
-
-.. code-block:: python
-
-    AUTHENTICATION_BACKENDS = (
-        'tenant_users.permissions.backend.UserBackend',
-    )
-
-Notes:
-If you want to use django admin you will have to utilize admin multisite. Warning: if you set this up incorrectly you could expose access to models that users are not permitted to access (due to the schema search path being present, and falling through. See notes in code).  
-You must reset migrations after updating the user model.  
-
-
 .. _cookies:
 
 Setting up cross domain cookies
