@@ -1,11 +1,11 @@
 import pytest
 from django.contrib.auth import get_user_model
+from django_tenants.utils import get_tenant_model, schema_context
 
-from tenant_users import compat
 from tenant_users.tenants import models
 
 #: Constants
-TenantModel = compat.get_tenant_model()
+TenantModel = get_tenant_model()
 TenantUser = get_user_model()
 
 
@@ -13,7 +13,7 @@ TenantUser = get_user_model()
 def test_create_user_in_tenant_schema(test_tenants):
     """Ensures error is raised when user creation isn't in public schema."""
     tenant = test_tenants.first()
-    with compat.schema_context(tenant.schema_name):
+    with schema_context(tenant.schema_name):
         with pytest.raises(models.SchemaError, match='Schema must be public'):
             TenantUser.objects.create_user(email='user@schema.com')
 
@@ -26,10 +26,21 @@ def test_create_user_no_email():
 
 
 @pytest.mark.django_db()
-def test_create_user_random_password():
-    """Ensures created user gets random password if excluded."""
+def test_create_user_with_password(client):
+    """Ensures created user with password is valid."""
+    secret = 'Secret#'
+    email = 'user@test.com'
+    user = TenantUser.objects.create_user(email, password=secret)
+
+    assert user.has_usable_password() is True
+    assert client.login(username=email, password=secret) is True
+
+
+@pytest.mark.django_db()
+def test_create_user_without_password():
+    """Ensures created user gets unusable password if excluded."""
     user = TenantUser.objects.create_user('user@test.com')
-    assert user.password is not None
+    assert user.has_usable_password() is False
 
 
 @pytest.mark.django_db()

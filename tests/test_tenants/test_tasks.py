@@ -1,13 +1,13 @@
 import pytest
 from django.conf import settings
 from django.contrib.auth import get_user_model
+from django_tenants.utils import get_tenant_model
 
-from tenant_users import compat
 from tenant_users.tenants import tasks
 from tenant_users.tenants.models import ExistsError, InactiveError
 
 #: Constants
-TenantModel = compat.get_tenant_model()
+TenantModel = get_tenant_model()
 TenantUser = get_user_model()
 
 
@@ -22,6 +22,20 @@ def test_provision_tenant(tenant_user_admin):
     )
 
     assert tenant_domain == '{0}.{1}'.format(slug, settings.TENANT_USERS_DOMAIN)
+
+
+@pytest.mark.django_db()
+def test_provision_tenant_with_subfolder(settings, tenant_user_admin):
+    """Tests tasks.provision_tenant() for correctness when using subfolders."""
+    settings.TENANT_SUBFOLDER_PREFIX = 'clients'
+    slug = 'sample'
+    tenant_domain = tasks.provision_tenant(
+        'Sample Tenant',
+        slug,
+        tenant_user_admin,
+    )
+
+    assert tenant_domain == slug
 
 
 @pytest.mark.django_db()
